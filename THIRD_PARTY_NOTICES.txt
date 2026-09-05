@@ -1,0 +1,14 @@
+Protocol research reference
+===========================
+
+The CompX VID/PID and passive telemetry behavior were cross-checked against:
+
+Mouse Battery Tray
+Copyright (c) 2026 incconu_two
+https://github.com/incconutwo/mouse-battery-tray
+Licensed under the MIT License.
+
+The active battery query implemented in this application was independently
+verified against the locally installed ARDOR GAMING Chimera driver and physical
+hardware. No ARDOR executable, artwork, firmware, or proprietary driver file is
+included in this distribution.

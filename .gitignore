@@ -1,0 +1,6 @@
+/ArdorBatteryTray.exe
+/app.ico
+/dist/
+*.pdb
+*.user
+*.suo
