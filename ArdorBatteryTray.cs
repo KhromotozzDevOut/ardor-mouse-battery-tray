@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Threading;
@@ -17,8 +18,8 @@ using Microsoft.Win32.SafeHandles;
 [assembly: AssemblyCompany("ArdorBatteryTray contributors")]
 [assembly: AssemblyProduct("ARDOR Mouse Battery Tray")]
 [assembly: AssemblyCopyright("Copyright © 2026")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace ArdorBatteryTray
 {
@@ -74,7 +75,17 @@ namespace ArdorBatteryTray
         private readonly ToolStripMenuItem startupItem;
         private readonly ToolStripMenuItem widgetToggleItem;
         private readonly ToolStripMenuItem moveWidgetItem;
+        private readonly ToolStripMenuItem positionMenu;
+        private readonly ToolStripMenuItem sizeMenu;
+        private readonly ToolStripMenuItem opacityMenu;
+        private readonly ToolStripMenuItem refreshItem;
+        private readonly ToolStripMenuItem openDriverItem;
+        private readonly ToolStripMenuItem languageMenu;
+        private readonly ToolStripMenuItem exitItem;
         private readonly List<ToolStripMenuItem> widgetPositionItems = new List<ToolStripMenuItem>();
+        private readonly List<ToolStripMenuItem> widgetSizeItems = new List<ToolStripMenuItem>();
+        private readonly List<ToolStripMenuItem> widgetOpacityItems = new List<ToolStripMenuItem>();
+        private readonly List<ToolStripMenuItem> languageItems = new List<ToolStripMenuItem>();
         private WidgetForm widget;
         private int polling;
         private bool disposed;
@@ -90,54 +101,59 @@ namespace ArdorBatteryTray
             dispatcher = new Control();
             dispatcher.CreateControl();
 
-            statusItem = new ToolStripMenuItem("Поиск совместимой мыши ARDOR…") { Enabled = false };
-            startupItem = new ToolStripMenuItem("Запускать вместе с Windows")
+            statusItem = new ToolStripMenuItem(AppText.Get("Searching")) { Enabled = false };
+            startupItem = new ToolStripMenuItem(AppText.Get("Startup"))
             {
                 CheckOnClick = false,
                 Checked = IsStartupEnabled()
             };
             startupItem.Click += delegate { ToggleStartup(); };
 
-            widgetToggleItem = new ToolStripMenuItem("Показывать виджет поверх окон")
+            widgetToggleItem = new ToolStripMenuItem(AppText.Get("WidgetShow"))
             {
                 CheckOnClick = false,
                 Checked = WidgetSettings.Enabled
             };
             widgetToggleItem.Click += delegate { ToggleWidget(); };
 
-            moveWidgetItem = new ToolStripMenuItem("Переместить виджет…")
+            moveWidgetItem = new ToolStripMenuItem(AppText.Get("WidgetMove"))
             {
                 Enabled = WidgetSettings.Enabled
             };
             moveWidgetItem.Click += delegate { ToggleMoveMode(); };
 
-            var positionMenu = new ToolStripMenuItem("Положение виджета");
-            positionMenu.DropDownItems.Add(CreatePositionItem("Сверху слева", "TopLeft"));
-            positionMenu.DropDownItems.Add(CreatePositionItem("Сверху справа", "TopRight"));
-            positionMenu.DropDownItems.Add(CreatePositionItem("Снизу слева", "BottomLeft"));
-            positionMenu.DropDownItems.Add(CreatePositionItem("Снизу справа", "BottomRight"));
+            positionMenu = new ToolStripMenuItem(AppText.Get("WidgetPosition"));
+            positionMenu.DropDownItems.Add(CreatePositionItem("PositionTopLeft", "TopLeft"));
+            positionMenu.DropDownItems.Add(CreatePositionItem("PositionTopRight", "TopRight"));
+            positionMenu.DropDownItems.Add(CreatePositionItem("PositionBottomLeft", "BottomLeft"));
+            positionMenu.DropDownItems.Add(CreatePositionItem("PositionBottomRight", "BottomRight"));
             positionMenu.DropDownItems.Add(new ToolStripSeparator());
-            positionMenu.DropDownItems.Add(CreatePositionItem("Последнее свободное положение", "Custom"));
+            positionMenu.DropDownItems.Add(CreatePositionItem("PositionCustom", "Custom"));
 
-            var sizeMenu = new ToolStripMenuItem("Размер виджета");
-            sizeMenu.DropDownItems.Add(CreateSizeItem("Маленький", 48));
-            sizeMenu.DropDownItems.Add(CreateSizeItem("Средний", 72));
-            sizeMenu.DropDownItems.Add(CreateSizeItem("Большой", 110));
-            sizeMenu.DropDownItems.Add(CreateSizeItem("Очень большой", 160));
+            sizeMenu = new ToolStripMenuItem(AppText.Get("WidgetSize"));
+            sizeMenu.DropDownItems.Add(CreateSizeItem("SizeSmall", 48));
+            sizeMenu.DropDownItems.Add(CreateSizeItem("SizeMedium", 72));
+            sizeMenu.DropDownItems.Add(CreateSizeItem("SizeLarge", 110));
+            sizeMenu.DropDownItems.Add(CreateSizeItem("SizeVeryLarge", 160));
 
-            var opacityMenu = new ToolStripMenuItem("Прозрачность виджета");
-            opacityMenu.DropDownItems.Add(CreateOpacityItem("Непрозрачный", 100));
-            opacityMenu.DropDownItems.Add(CreateOpacityItem("Слабая — 85%", 85));
-            opacityMenu.DropDownItems.Add(CreateOpacityItem("Средняя — 65%", 65));
-            opacityMenu.DropDownItems.Add(CreateOpacityItem("Сильная — 45%", 45));
+            opacityMenu = new ToolStripMenuItem(AppText.Get("WidgetOpacity"));
+            opacityMenu.DropDownItems.Add(CreateOpacityItem("Opacity100", 100));
+            opacityMenu.DropDownItems.Add(CreateOpacityItem("Opacity85", 85));
+            opacityMenu.DropDownItems.Add(CreateOpacityItem("Opacity65", 65));
+            opacityMenu.DropDownItems.Add(CreateOpacityItem("Opacity45", 45));
 
-            var refreshItem = new ToolStripMenuItem("Обновить сейчас");
+            refreshItem = new ToolStripMenuItem(AppText.Get("Refresh"));
             refreshItem.Click += delegate { QueuePoll(); };
 
-            var openDriverItem = new ToolStripMenuItem("Открыть программу ARDOR");
+            openDriverItem = new ToolStripMenuItem(AppText.Get("OpenDriver"));
             openDriverItem.Click += delegate { OpenDriver(); };
 
-            var exitItem = new ToolStripMenuItem("Выход");
+            languageMenu = new ToolStripMenuItem(AppText.Get("Language"));
+            languageMenu.DropDownItems.Add(CreateLanguageItem("LanguageSystem", "auto"));
+            languageMenu.DropDownItems.Add(CreateLanguageItem("LanguageEnglish", "en"));
+            languageMenu.DropDownItems.Add(CreateLanguageItem("LanguageRussian", "ru"));
+
+            exitItem = new ToolStripMenuItem(AppText.Get("Exit"));
             exitItem.Click += delegate { ExitThread(); };
 
             var menu = new ContextMenuStrip();
@@ -152,13 +168,14 @@ namespace ArdorBatteryTray
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(startupItem);
             menu.Items.Add(openDriverItem);
+            menu.Items.Add(languageMenu);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(exitItem);
 
             tray = new NotifyIcon
             {
                 Visible = true,
-                Text = "ARDOR: поиск совместимой мыши…",
+                Text = AppText.Get("Searching"),
                 Icon = TrayIconFactory.Create(null, false, false),
                 ContextMenuStrip = menu
             };
@@ -170,13 +187,14 @@ namespace ArdorBatteryTray
             pollTimer = new System.Threading.Timer(delegate { QueuePoll(); }, null, 100, 30000);
         }
 
-        private ToolStripMenuItem CreatePositionItem(string label, string value)
+        private ToolStripMenuItem CreatePositionItem(string textKey, string value)
         {
-            var item = new ToolStripMenuItem(label)
+            var item = new ToolStripMenuItem(AppText.Get(textKey))
             {
                 CheckOnClick = false,
                 Checked = string.Equals(WidgetSettings.Position, value, StringComparison.OrdinalIgnoreCase)
             };
+            item.Name = textKey;
             item.Tag = value;
             item.Click += delegate
             {
@@ -191,13 +209,14 @@ namespace ArdorBatteryTray
             return item;
         }
 
-        private ToolStripMenuItem CreateSizeItem(string label, int value)
+        private ToolStripMenuItem CreateSizeItem(string textKey, int value)
         {
-            var item = new ToolStripMenuItem(label)
+            var item = new ToolStripMenuItem(AppText.Get(textKey))
             {
                 CheckOnClick = false,
                 Checked = WidgetSettings.Size == value
             };
+            item.Name = textKey;
             item.Click += delegate
             {
                 WidgetSettings.Size = value;
@@ -205,16 +224,18 @@ namespace ArdorBatteryTray
                     sibling.Checked = ReferenceEquals(sibling, item);
                 ApplyWidgetSettings();
             };
+            widgetSizeItems.Add(item);
             return item;
         }
 
-        private ToolStripMenuItem CreateOpacityItem(string label, int value)
+        private ToolStripMenuItem CreateOpacityItem(string textKey, int value)
         {
-            var item = new ToolStripMenuItem(label)
+            var item = new ToolStripMenuItem(AppText.Get(textKey))
             {
                 CheckOnClick = false,
                 Checked = WidgetSettings.OpacityPercent == value
             };
+            item.Name = textKey;
             item.Click += delegate
             {
                 WidgetSettings.OpacityPercent = value;
@@ -222,7 +243,58 @@ namespace ArdorBatteryTray
                     sibling.Checked = ReferenceEquals(sibling, item);
                 ApplyWidgetSettings();
             };
+            widgetOpacityItems.Add(item);
             return item;
+        }
+
+        private ToolStripMenuItem CreateLanguageItem(string textKey, string value)
+        {
+            var item = new ToolStripMenuItem(AppText.Get(textKey))
+            {
+                CheckOnClick = false,
+                Checked = string.Equals(AppText.Preference, value, StringComparison.OrdinalIgnoreCase)
+            };
+            item.Name = textKey;
+            item.Tag = value;
+            item.Click += delegate
+            {
+                AppText.Preference = value;
+                foreach (ToolStripMenuItem sibling in languageItems)
+                    sibling.Checked = ReferenceEquals(sibling, item);
+                ApplyLanguage();
+                QueuePoll();
+            };
+            languageItems.Add(item);
+            return item;
+        }
+
+        private void ApplyLanguage()
+        {
+            startupItem.Text = AppText.Get("Startup");
+            widgetToggleItem.Text = AppText.Get("WidgetShow");
+            positionMenu.Text = AppText.Get("WidgetPosition");
+            sizeMenu.Text = AppText.Get("WidgetSize");
+            opacityMenu.Text = AppText.Get("WidgetOpacity");
+            refreshItem.Text = AppText.Get("Refresh");
+            openDriverItem.Text = AppText.Get("OpenDriver");
+            languageMenu.Text = AppText.Get("Language");
+            exitItem.Text = AppText.Get("Exit");
+            foreach (ToolStripMenuItem item in widgetPositionItems)
+                item.Text = AppText.Get(item.Name);
+            foreach (ToolStripMenuItem item in widgetSizeItems)
+                item.Text = AppText.Get(item.Name);
+            foreach (ToolStripMenuItem item in widgetOpacityItems)
+                item.Text = AppText.Get(item.Name);
+            foreach (ToolStripMenuItem item in languageItems)
+                item.Text = AppText.Get(item.Name);
+            UpdateMoveMenu();
+            if (lastPercent < 0)
+            {
+                statusItem.Text = AppText.Get("Searching");
+                tray.Text = AppText.Get("Searching");
+            }
+            if (widget != null && !widget.IsDisposed)
+                widget.ApplyLanguage();
         }
 
         private void ToggleWidget()
@@ -262,7 +334,7 @@ namespace ArdorBatteryTray
         private void UpdateMoveMenu()
         {
             bool moving = widget != null && !widget.IsDisposed && widget.IsMoveMode;
-            moveWidgetItem.Text = moving ? "Закрепить виджет здесь" : "Переместить виджет…";
+            moveWidgetItem.Text = AppText.Get(moving ? "WidgetLock" : "WidgetMove");
             moveWidgetItem.Checked = moving;
         }
 
@@ -359,13 +431,13 @@ namespace ArdorBatteryTray
 
                 string suffix;
                 if (reading.Charging)
-                    suffix = "заряжается";
+                    suffix = AppText.Get("StatusCharging");
                 else if (reading.Wired)
-                    suffix = "по кабелю";
+                    suffix = AppText.Get("StatusWired");
                 else
-                    suffix = "2,4 ГГц";
+                    suffix = AppText.Get("StatusWireless");
 
-                string text = string.Format("{0}: {1}% — {2}", lastDeviceName, reading.Percent, suffix);
+                string text = string.Format(AppText.Get("StatusFormat"), lastDeviceName, reading.Percent, suffix);
                 statusItem.Text = text;
                 tray.Text = LimitTooltip(text);
                 ReplaceIcon(TrayIconFactory.Create(reading.Percent, reading.Charging, false));
@@ -380,21 +452,22 @@ namespace ArdorBatteryTray
                                  DateTime.Now - lastGoodReading < TimeSpan.FromMinutes(5);
             if (hasFreshCache)
             {
-                string text = string.Format("{0}: {1}% — мышь спит", lastDeviceName, lastPercent);
+                string text = string.Format(AppText.Get("StatusFormat"), lastDeviceName, lastPercent,
+                    AppText.Get("StatusSleeping"));
                 statusItem.Text = text;
                 tray.Text = LimitTooltip(text);
                 ReplaceIcon(TrayIconFactory.Create(lastPercent, lastCharging, true));
                 if (widget != null && !widget.IsDisposed)
-                    widget.SetReading(lastPercent, lastCharging, true, "мышь спит");
+                    widget.SetReading(lastPercent, lastCharging, true, AppText.Get("StatusSleeping"));
             }
             else
             {
-                const string text = "ARDOR: совместимая мышь не отвечает";
+                string text = AppText.Get("NoResponse");
                 statusItem.Text = text;
                 tray.Text = text;
                 ReplaceIcon(TrayIconFactory.Create(null, false, false));
                 if (widget != null && !widget.IsDisposed)
-                    widget.SetReading(null, false, false, "нет ответа");
+                    widget.SetReading(null, false, false, AppText.Get("WidgetNoResponse"));
             }
         }
 
@@ -418,8 +491,8 @@ namespace ArdorBatteryTray
                 return;
 
             lastAlertLevel = alertLevel;
-            tray.BalloonTipTitle = "Низкий заряд мыши ARDOR";
-            tray.BalloonTipText = string.Format("Осталось {0}%. Подключите мышь к зарядке.", reading.Percent);
+            tray.BalloonTipTitle = AppText.Get("LowBatteryTitle");
+            tray.BalloonTipText = string.Format(AppText.Get("LowBatteryText"), reading.Percent);
             tray.BalloonTipIcon = alertLevel <= 5 ? ToolTipIcon.Error : ToolTipIcon.Warning;
             tray.ShowBalloonTip(5000);
         }
@@ -447,7 +520,7 @@ namespace ArdorBatteryTray
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Не удалось изменить автозапуск:\n" + ex.Message,
+                MessageBox.Show(AppText.Get("StartupError") + "\n" + ex.Message,
                     "ARDOR Battery Tray", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             startupItem.Checked = IsStartupEnabled();
@@ -471,12 +544,12 @@ namespace ArdorBatteryTray
                 if (!string.IsNullOrEmpty(driverPath))
                     Process.Start(driverPath);
                 else
-                    MessageBox.Show("Фирменная программа ARDOR не найдена. Индикатор заряда может работать без неё.", "ARDOR Battery Tray",
+                    MessageBox.Show(AppText.Get("DriverMissing"), "ARDOR Battery Tray",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Не удалось открыть программу ARDOR:\n" + ex.Message, "ARDOR Battery Tray",
+                MessageBox.Show(AppText.Get("DriverError") + "\n" + ex.Message, "ARDOR Battery Tray",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -553,6 +626,139 @@ namespace ArdorBatteryTray
         }
     }
 
+    internal static class AppText
+    {
+        private static readonly Dictionary<string, string> English = new Dictionary<string, string>
+        {
+            { "Searching", "ARDOR: looking for a compatible mouse…" },
+            { "Startup", "Start with Windows" },
+            { "WidgetShow", "Show overlay widget" },
+            { "WidgetMove", "Move widget…" },
+            { "WidgetLock", "Pin widget here" },
+            { "WidgetPosition", "Widget position" },
+            { "PositionTopLeft", "Top left" },
+            { "PositionTopRight", "Top right" },
+            { "PositionBottomLeft", "Bottom left" },
+            { "PositionBottomRight", "Bottom right" },
+            { "PositionCustom", "Last custom position" },
+            { "WidgetSize", "Widget size" },
+            { "SizeSmall", "Small" },
+            { "SizeMedium", "Medium" },
+            { "SizeLarge", "Large" },
+            { "SizeVeryLarge", "Very large" },
+            { "WidgetOpacity", "Widget opacity" },
+            { "Opacity100", "Opaque — 100%" },
+            { "Opacity85", "Light — 85%" },
+            { "Opacity65", "Medium — 65%" },
+            { "Opacity45", "Strong — 45%" },
+            { "Refresh", "Refresh now" },
+            { "OpenDriver", "Open ARDOR software" },
+            { "Language", "Language" },
+            { "LanguageSystem", "System default" },
+            { "LanguageEnglish", "English" },
+            { "LanguageRussian", "Russian / Русский" },
+            { "Exit", "Exit" },
+            { "StatusCharging", "charging" },
+            { "StatusWired", "wired" },
+            { "StatusWireless", "2.4 GHz" },
+            { "StatusSleeping", "mouse sleeping" },
+            { "StatusFormat", "{0}: {1}% — {2}" },
+            { "NoResponse", "ARDOR: compatible mouse is not responding" },
+            { "WidgetNoResponse", "no response" },
+            { "LowBatteryTitle", "ARDOR mouse battery is low" },
+            { "LowBatteryText", "{0}% remaining. Connect the mouse to charge it." },
+            { "StartupError", "Could not change the startup setting:" },
+            { "DriverMissing", "ARDOR software was not found. The battery indicator can work without it." },
+            { "DriverError", "Could not open ARDOR software:" },
+            { "WidgetPinHere", "Pin here" },
+            { "WidgetHide", "Hide widget" },
+            { "WidgetSearching", "looking for mouse" }
+        };
+
+        private static readonly Dictionary<string, string> Russian = new Dictionary<string, string>
+        {
+            { "Searching", "ARDOR: поиск совместимой мыши…" },
+            { "Startup", "Запускать вместе с Windows" },
+            { "WidgetShow", "Показывать виджет поверх окон" },
+            { "WidgetMove", "Переместить виджет…" },
+            { "WidgetLock", "Закрепить виджет здесь" },
+            { "WidgetPosition", "Положение виджета" },
+            { "PositionTopLeft", "Сверху слева" },
+            { "PositionTopRight", "Сверху справа" },
+            { "PositionBottomLeft", "Снизу слева" },
+            { "PositionBottomRight", "Снизу справа" },
+            { "PositionCustom", "Последнее свободное положение" },
+            { "WidgetSize", "Размер виджета" },
+            { "SizeSmall", "Маленький" },
+            { "SizeMedium", "Средний" },
+            { "SizeLarge", "Большой" },
+            { "SizeVeryLarge", "Очень большой" },
+            { "WidgetOpacity", "Прозрачность виджета" },
+            { "Opacity100", "Непрозрачный — 100%" },
+            { "Opacity85", "Слабая — 85%" },
+            { "Opacity65", "Средняя — 65%" },
+            { "Opacity45", "Сильная — 45%" },
+            { "Refresh", "Обновить сейчас" },
+            { "OpenDriver", "Открыть программу ARDOR" },
+            { "Language", "Язык" },
+            { "LanguageSystem", "Как в системе" },
+            { "LanguageEnglish", "English / Английский" },
+            { "LanguageRussian", "Русский" },
+            { "Exit", "Выход" },
+            { "StatusCharging", "заряжается" },
+            { "StatusWired", "по кабелю" },
+            { "StatusWireless", "2,4 ГГц" },
+            { "StatusSleeping", "мышь спит" },
+            { "StatusFormat", "{0}: {1}% — {2}" },
+            { "NoResponse", "ARDOR: совместимая мышь не отвечает" },
+            { "WidgetNoResponse", "нет ответа" },
+            { "LowBatteryTitle", "Низкий заряд мыши ARDOR" },
+            { "LowBatteryText", "Осталось {0}%. Подключите мышь к зарядке." },
+            { "StartupError", "Не удалось изменить автозапуск:" },
+            { "DriverMissing", "Фирменная программа ARDOR не найдена. Индикатор заряда может работать без неё." },
+            { "DriverError", "Не удалось открыть программу ARDOR:" },
+            { "WidgetPinHere", "Закрепить здесь" },
+            { "WidgetHide", "Скрыть виджет" },
+            { "WidgetSearching", "поиск мыши" }
+        };
+
+        public static string Preference
+        {
+            get { return WidgetSettings.Language; }
+            set { WidgetSettings.Language = NormalizePreference(value); }
+        }
+
+        public static string CurrentLanguage
+        {
+            get
+            {
+                string preference = Preference;
+                if (string.Equals(preference, "ru", StringComparison.OrdinalIgnoreCase))
+                    return "ru";
+                if (string.Equals(preference, "en", StringComparison.OrdinalIgnoreCase))
+                    return "en";
+                return string.Equals(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, "ru",
+                    StringComparison.OrdinalIgnoreCase) ? "ru" : "en";
+            }
+        }
+
+        public static string Get(string key)
+        {
+            string value;
+            Dictionary<string, string> selected = CurrentLanguage == "ru" ? Russian : English;
+            if (selected.TryGetValue(key, out value))
+                return value;
+            return English.TryGetValue(key, out value) ? value : key;
+        }
+
+        private static string NormalizePreference(string value)
+        {
+            if (string.Equals(value, "ru", StringComparison.OrdinalIgnoreCase)) return "ru";
+            if (string.Equals(value, "en", StringComparison.OrdinalIgnoreCase)) return "en";
+            return "auto";
+        }
+    }
+
     internal sealed class BatteryReading
     {
         public string DeviceName;
@@ -615,6 +821,12 @@ namespace ArdorBatteryTray
             set { SetValue("WidgetY", value); }
         }
 
+        public static string Language
+        {
+            get { return GetString("Language", "auto"); }
+            set { SetValue("Language", value); }
+        }
+
         private static int GetInt(string name, int fallback)
         {
             try
@@ -669,12 +881,13 @@ namespace ArdorBatteryTray
         private int? percent;
         private bool charging;
         private bool sleeping;
-        private string stateText = "поиск мыши";
+        private string stateText = AppText.Get("WidgetSearching");
         private bool dragging;
         private bool moveMode;
         private Point dragOffset;
         private readonly System.Windows.Forms.Timer keepAboveGamesTimer;
         private readonly ToolStripMenuItem confirmMoveItem;
+        private readonly ToolStripMenuItem hideItem;
 
         public event Action PositionChangedByUser;
         public event Action ConfirmMoveRequested;
@@ -694,14 +907,14 @@ namespace ArdorBatteryTray
             Cursor = Cursors.Default;
             Text = "ARDOR Mouse Battery";
 
-            confirmMoveItem = new ToolStripMenuItem("Закрепить здесь");
+            confirmMoveItem = new ToolStripMenuItem(AppText.Get("WidgetPinHere"));
             confirmMoveItem.Click += delegate
             {
                 Action handler = ConfirmMoveRequested;
                 if (handler != null)
                     handler();
             };
-            var hideItem = new ToolStripMenuItem("Скрыть виджет");
+            hideItem = new ToolStripMenuItem(AppText.Get("WidgetHide"));
             hideItem.Click += delegate
             {
                 Action handler = HideRequested;
@@ -723,6 +936,12 @@ namespace ArdorBatteryTray
 
             ApplySettings(WidgetSettings.Size, WidgetSettings.OpacityPercent, WidgetSettings.Position);
             SetMoveMode(false, false);
+        }
+
+        public void ApplyLanguage()
+        {
+            confirmMoveItem.Text = AppText.Get("WidgetPinHere");
+            hideItem.Text = AppText.Get("WidgetHide");
         }
 
         protected override CreateParams CreateParams

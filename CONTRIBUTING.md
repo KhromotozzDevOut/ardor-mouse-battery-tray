@@ -1,5 +1,7 @@
 # Contributing
 
+[Русская версия](CONTRIBUTING.ru.md)
+
 Bug reports and verified device additions are welcome.
 
 For a new ARDOR mouse, please include:

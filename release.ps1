@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.0.0'
+    [string]$Version = '1.2.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,7 +14,7 @@ if (Test-Path -LiteralPath $stageDir) {
     $resolvedStage = [System.IO.Path]::GetFullPath($stageDir)
     $resolvedDist = [System.IO.Path]::GetFullPath($distDir) + [System.IO.Path]::DirectorySeparatorChar
     if (-not $resolvedStage.StartsWith($resolvedDist, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "Небезопасный путь staging: $resolvedStage"
+        throw "Unsafe staging path: $resolvedStage"
     }
     Remove-Item -LiteralPath $resolvedStage -Recurse -Force
 }
@@ -25,6 +25,7 @@ if (Test-Path -LiteralPath $zipPath) {
 New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $projectDir 'ArdorBatteryTray.exe') -Destination $stageDir
 Copy-Item -LiteralPath (Join-Path $projectDir 'README.md') -Destination $stageDir
+Copy-Item -LiteralPath (Join-Path $projectDir 'README.ru.md') -Destination $stageDir
 Copy-Item -LiteralPath (Join-Path $projectDir 'LICENSE.txt') -Destination $stageDir
 Copy-Item -LiteralPath (Join-Path $projectDir 'THIRD_PARTY_NOTICES.txt') -Destination $stageDir
 Compress-Archive -Path (Join-Path $stageDir '*') -DestinationPath $zipPath -CompressionLevel Optimal
@@ -46,14 +47,14 @@ if ($isccPath) {
     try {
         & $isccPath "/DMyAppVersion=$Version" (Join-Path $projectDir 'installer.iss')
         if ($LASTEXITCODE -ne 0) {
-            throw "Inno Setup завершился с кодом $LASTEXITCODE"
+            throw "Inno Setup failed with exit code $LASTEXITCODE"
         }
     }
     finally {
         Pop-Location
     }
 } else {
-    Write-Warning 'Inno Setup не найден: portable ZIP создан, установщик пропущен.'
+    Write-Warning 'Inno Setup was not found: the portable ZIP was created, but the installer was skipped.'
 }
 
 $artifacts = @((Get-Item -LiteralPath $zipPath))
@@ -69,5 +70,5 @@ $lines = foreach ($artifact in $artifacts) {
 $lines | Set-Content -LiteralPath $checksumPath -Encoding ascii
 
 Write-Host ''
-Write-Host 'Релиз готов:'
+Write-Host 'Release artifacts:'
 Get-ChildItem -LiteralPath $distDir -File | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize

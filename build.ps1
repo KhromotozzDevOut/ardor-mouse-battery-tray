@@ -7,7 +7,7 @@ $icon = Join-Path $projectDir 'app.ico'
 $compiler = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 
 if (-not (Test-Path -LiteralPath $compiler)) {
-    throw 'Не найден встроенный компилятор .NET Framework.'
+    throw 'The built-in .NET Framework compiler was not found.'
 }
 
 & (Join-Path $projectDir 'generate-icon.ps1')
@@ -21,7 +21,7 @@ if (-not (Test-Path -LiteralPath $compiler)) {
     /out:$output $source
 
 if ($LASTEXITCODE -ne 0) {
-    throw "Сборка завершилась с кодом $LASTEXITCODE"
+    throw "Build failed with exit code $LASTEXITCODE"
 }
 
-Write-Host "Готово: $output"
+Write-Host "Built: $output"

@@ -1,88 +1,95 @@
 # ARDOR Mouse Battery Tray
 
-[Скачать последнюю версию](https://github.com/richardgame0079-maker/ardor-mouse-battery-tray/releases/latest)
+[Русская версия](README.ru.md) · [Download the latest release](https://github.com/KhromotozzDevOut/ardor-mouse-battery-tray/releases/latest)
 
-Небольшой индикатор заряда для совместимых беспроводных мышей ARDOR GAMING.
-Это неофициальный проект сообщества, не связанный с ARDOR GAMING.
+A lightweight battery indicator for compatible ARDOR GAMING wireless mice. It displays
+the current charge as a clear number in the Windows notification area and as an optional
+always-on-top overlay.
 
-Утилита напрямую отправляет мыши только команду чтения батареи, которую использует
-фирменная программа. Настройки, DPI и память мыши она не изменяет. Программа ARDOR
-может работать одновременно с индикатором, но для его работы не требуется.
+This is an unofficial community project and is not affiliated with ARDOR GAMING.
 
-## Поддерживаемые мыши
+The utility sends only the battery-read command used by the official software. It does not
+change DPI, button assignments, onboard memory or other mouse settings. The ARDOR software
+may run alongside this indicator, but it is not required.
 
-| Модель | USB VID/PID | Статус |
+## Supported mice
+
+| Model | USB VID/PID | Status |
 | --- | --- | --- |
-| Chimera | `25A7:FA7B/FA7C` | проверено на реальной мыши |
-| Essence | `25A7:FA7B/FA7C` | подтверждено официальным пакетом ПО |
-| Phantom / Phantom Wireless | `25A7:FA7B/FA7C` | подтверждено официальным пакетом ПО |
-| Prime Wireless | `25A7:FA7B/FA7C` | подтверждено официальным пакетом ПО |
-| Ulta | `25A7:FA7B/FA7C` | подтверждено официальным пакетом ПО |
-| Immortality PRO Wireless | `25A7:FA7B/FA7C` | подтверждено официальным пакетом ПО |
-| Harpy | `3554:F511/F53C` | реализован Nordic/CompX-профиль; требуется проверка владельцем |
-| Impact PRO | `3554:F59A/F53C` | реализован Nordic/CompX-профиль; требуется проверка владельцем |
-| Phantom PRO V2 | `3554:F52E/F52D` | реализован Nordic/CompX-профиль; требуется проверка владельцем |
+| Chimera | `25A7:FA7B/FA7C` | verified on physical hardware |
+| Essence | `25A7:FA7B/FA7C` | confirmed from the official software package |
+| Phantom / Phantom Wireless | `25A7:FA7B/FA7C` | confirmed from the official software package |
+| Prime Wireless | `25A7:FA7B/FA7C` | confirmed from the official software package |
+| Ulta | `25A7:FA7B/FA7C` | confirmed from the official software package |
+| Immortality PRO Wireless | `25A7:FA7B/FA7C` | confirmed from the official software package |
+| Harpy | `3554:F511/F53C` | Nordic/CompX profile implemented; owner verification needed |
+| Impact PRO | `3554:F59A/F53C` | Nordic/CompX profile implemented; owner verification needed |
+| Phantom PRO V2 | `3554:F52E/F52D` | Nordic/CompX profile implemented; owner verification needed |
 
-Несколько моделей используют один и тот же аппаратный ID, поэтому Windows не позволяет
-надёжно отличить их друг от друга. В интерфейсе они отображаются как `ARDOR CompX`
-или `ARDOR Nordic/CompX`.
-Неподтверждённая мышь не опрашивается: совпадение бренда или сенсора само по себе ещё не
-означает совместимый протокол.
+Several models share the same hardware ID, so Windows cannot reliably distinguish between
+them. The application identifies these devices as `ARDOR CompX` or `ARDOR Nordic/CompX`.
+An unknown mouse is never queried merely because its brand or sensor matches.
 
-Если вашей модели нет в таблице, [создайте issue](https://github.com/richardgame0079-maker/ardor-mouse-battery-tray/issues/new)
-и приложите точное название мыши,
-аппаратные ID проводного подключения и ресивера, а также ссылку на официальное ПО.
-Требования к таким отчётам перечислены в `CONTRIBUTING.md`.
+If your model is missing, [open an issue](https://github.com/KhromotozzDevOut/ardor-mouse-battery-tray/issues/new)
+and include its exact name, wired and receiver hardware IDs, and a link to the official
+software. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete checklist.
 
-## Использование
+## Features
 
-1. Запустите `ArdorBatteryTray.exe`.
-2. Наведите курсор на цветное число в области уведомлений, чтобы увидеть режим связи.
-3. Дважды щёлкните значок для уведомления с текущим состоянием.
-4. В контекстном меню можно обновить показание, включить автозапуск, открыть программу
-   ARDOR или закрыть утилиту.
+- sharp, color-coded battery percentage in the Windows tray;
+- optional transparent overlay that stays above regular and borderless full-screen windows;
+- four corner positions plus a lockable custom position;
+- four widget sizes and four opacity levels;
+- low-battery notifications at 20%, 10% and 5%;
+- optional per-user Windows startup;
+- English and Russian interface with automatic Windows-language detection;
+- no telemetry, ads, network access, Python or third-party runtime.
 
+## Language
 
-## Виджет поверх окон
+The application follows the Windows display language by default. Russian Windows uses
+Russian; all other system languages currently fall back to English. To override this,
+right-click the tray icon and choose **Language → English**, **Russian / Русский**, or
+**System default**. The choice is applied immediately and saved for future launches.
 
-В меню значка включите **«Показывать виджет поверх окон»**. Там же доступны:
+## Usage
 
-- положение в любом углу экрана;
-- свободное положение: нажмите **«Переместить виджет…»**, перетащите его и нажмите
-  **«Закрепить виджет здесь»**;
-- четыре компактных размера от 48 до 160 пикселей;
-- прозрачность 100%, 85%, 65% или 45%.
+1. Start `ArdorBatteryTray.exe`.
+2. Hover over the colored tray number to see the device and connection state.
+3. Double-click the icon to display the current status as a notification.
+4. Right-click the icon to refresh, configure the overlay, enable startup, open the ARDOR
+   software, change the language, or exit.
 
+### Overlay widget
 
-## Установка и распространение
+Enable **Show overlay widget** in the tray menu. You can select a screen corner, size and
+opacity. For a custom position, choose **Move widget…**, drag the number, and click
+**Pin widget here**. Once pinned, the widget becomes click-through and cannot interfere
+with games until move mode is enabled again.
 
-- `ArdorBatteryTray-Setup-v1.1.0.exe` — обычный установщик без прав администратора;
-- `ArdorBatteryTray-v1.1.0-portable.zip` — переносная версия без установки;
-- `SHA256SUMS.txt` — контрольные суммы опубликованных файлов.
+## Installation and distribution
 
-Поддерживается Windows 10/11. Сторонние среды выполнения, Python и постоянно запущенный
-фирменный драйвер не требуются. Приложение не подключается к интернету, не содержит рекламы
-и не собирает телеметрию. Поддерживаемые модели и степень их проверки перечислены выше;
-цвет корпуса значения не имеет.
+- `ArdorBatteryTray-Setup-v1.2.0.exe` — standard per-user installer; no administrator rights;
+- `ArdorBatteryTray-v1.2.0-portable.zip` — portable version without installation;
+- `SHA256SUMS.txt` — checksums for published files.
 
-Неподписанный установщик может вызвать предупреждение Microsoft SmartScreen. Для публичного
-релиза без такого предупреждения потребуется сертификат подписи кода.
+Windows 10 and 11 are supported. The official ARDOR application does not need to be installed
+or running. An unsigned installer may trigger Microsoft SmartScreen; removing that warning
+from public releases requires a code-signing certificate.
 
-Заряд опрашивается раз в 30 секунд. При 20%, 10% и 5% в беспроводном режиме выводится
-предупреждение. Если мышь уснула, последнее достоверное показание сохраняется пять минут.
+The battery is queried every 30 seconds. If the mouse sleeps, the last verified reading is
+kept for five minutes.
 
-## Сборка
+## Building
 
-Запустите `build.ps1`. Используется встроенный компилятор .NET Framework Windows;
-сторонние пакеты и доступ к интернету не требуются.
+Run `build.ps1` on Windows. It uses the .NET Framework compiler included with Windows and
+requires no package download. `release.ps1` creates a portable ZIP, SHA-256 checksums and,
+when Inno Setup 6 is available, a per-user installer.
 
-`release.ps1` создаёт portable ZIP, контрольные суммы и, при наличии Inno Setup 6,
-пользовательский установщик.
+For protocol diagnostics, run `ArdorBatteryTray.exe --probe`. A console build prints one
+reading and exits.
 
-Для диагностики протокола можно запустить `ArdorBatteryTray.exe --probe`. При консольной
-сборке команда печатает одно текущее показание и завершается.
-
-Протокол CompX был проверен по установленному драйверу ARDOR и на подключённой Chimera.
-Идентификаторы остальных моделей получены из их официальных пакетов ПО ARDOR/DNS.
-Для дополнительной сверки использовалась открытая реализация Mouse Battery Tray
-(MIT, copyright 2026 incconu_two).
+The CompX protocol was verified against the installed ARDOR software and a physical Chimera.
+IDs for the other models came from their official ARDOR/DNS software packages. The open-source
+Mouse Battery Tray implementation was used for additional comparison (MIT, copyright 2026
+incconu_two).

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-09-06
+
+- Added an in-app language selector with automatic Windows-language detection.
+- Added complete English and Russian interface translations, including tray menus,
+  status text, notifications, widget actions and error dialogs.
+- Added English and Russian README files and localized installer options.
+- Updated repository and download links for the `KhromotozzDevOut` account.
+
 ## 1.1.0 — 2026-09-06
 
 - Generalized the product UI from Chimera to supported ARDOR wireless mice.
