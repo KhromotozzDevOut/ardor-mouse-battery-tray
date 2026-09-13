@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 — 2026-09-13
+
+- Added physically verified Razer Barracuda X (2022), USB `1532:0552`, support over its
+  2.4 GHz dongle without Synapse.
+- Reimplemented the read-only Airoha/Macronix HID exchange without shipping Razer binaries.
+- Added conservative voltage-to-percentage conversion at the headset's 10% granularity.
+- When several supported devices are connected, the tray displays the lowest battery.
+
 ## 1.2.0 — 2026-09-06
 
 - Added an in-app language selector with automatic Windows-language detection.
