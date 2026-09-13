@@ -18,8 +18,8 @@ using Microsoft.Win32.SafeHandles;
 [assembly: AssemblyCompany("ArdorBatteryTray contributors")]
 [assembly: AssemblyProduct("ARDOR Mouse Battery Tray")]
 [assembly: AssemblyCopyright("Copyright © 2026")]
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace ArdorBatteryTray
 {
@@ -1374,7 +1374,6 @@ namespace ArdorBatteryTray
         public static BatteryReading Read()
         {
             List<HidEndpoint> endpoints = EnumerateEndpoints();
-            BatteryReading lowest = null;
 
             foreach (DeviceProfile profile in Profiles)
             {
@@ -1382,110 +1381,12 @@ namespace ArdorBatteryTray
                 // cached value. Without the cable, fall back to the 2.4 GHz dongle.
                 BatteryReading wired = Query(endpoints, profile, profile.WiredProductId, true);
                 if (wired != null)
-                {
-                    if (lowest == null || wired.Percent < lowest.Percent)
-                        lowest = wired;
-                    continue;
-                }
+                    return wired;
                 BatteryReading wireless = Query(endpoints, profile, profile.WirelessProductId, false);
-                if (wireless != null && (lowest == null || wireless.Percent < lowest.Percent))
-                    lowest = wireless;
-            }
-            BatteryReading headset = QueryRazerBarracudaX2022(endpoints);
-            if (headset != null && (lowest == null || headset.Percent < lowest.Percent))
-                lowest = headset;
-            return lowest;
-        }
-
-        private static BatteryReading QueryRazerBarracudaX2022(List<HidEndpoint> endpoints)
-        {
-            foreach (HidEndpoint endpoint in endpoints)
-            {
-                if (endpoint.VendorId != 0x1532 || endpoint.ProductId != 0x0552 ||
-                    endpoint.UsagePage != 0xFF00 || endpoint.InputLength != 64 ||
-                    endpoint.OutputLength != 64)
-                    continue;
-
-                using (SafeFileHandle handle = Open(endpoint.Path,
-                    GenericRead | GenericWrite, FileFlagOverlapped))
-                {
-                    if (handle == null || handle.IsInvalid)
-                        continue;
-
-                    // The Barracuda X (2022) receiver is an Airoha/Macronix
-                    // hybrid transport. Confirm that it is in the normal MXIC
-                    // application mode before issuing the read-only OTA query.
-                    byte[] modeQuery = new byte[64];
-                    modeQuery[0] = 0x01;
-                    modeQuery[1] = 0x40;
-                    if (!WriteReport(handle, modeQuery, 500))
-                        continue;
-                    byte[] modeReply = ReadReport(handle, 64, 500);
-                    if (modeReply == null || modeReply.Length < 4 || modeReply[0] != 0x01 ||
-                        modeReply[1] != 0x40 || modeReply[2] != 0x01 || modeReply[3] != 0x01)
-                        continue;
-
-                    byte[] remoteQuery = new byte[64];
-                    byte[] remoteCommand = { 0x01, 0x80, 0x07, 0x50, 0x41, 0x0E, 0x02, 0x02, 0xE1, 0x01 };
-                    Buffer.BlockCopy(remoteCommand, 0, remoteQuery, 0, remoteCommand.Length);
-                    if (!WriteReport(handle, remoteQuery, 500) || ReadReport(handle, 64, 500) == null)
-                        continue;
-
-                    byte[] batteryQuery = new byte[64];
-                    byte[] batteryCommand = { 0x01, 0x80, 0x07, 0x50, 0x41, 0x06, 0x03, 0x01, 0x00, 0x31 };
-                    Buffer.BlockCopy(batteryCommand, 0, batteryQuery, 0, batteryCommand.Length);
-                    if (!WriteReport(handle, batteryQuery, 500))
-                        continue;
-                    byte[] reply = ReadReport(handle, 64, 800);
-
-                    byte[] localQuery = new byte[64];
-                    byte[] localCommand = { 0x01, 0x80, 0x07, 0x50, 0x41, 0x0E, 0x04, 0x02, 0xE1, 0x00 };
-                    Buffer.BlockCopy(localCommand, 0, localQuery, 0, localCommand.Length);
-                    if (WriteReport(handle, localQuery, 500))
-                        ReadReport(handle, 64, 300);
-
-                    Log("RX Razer Barracuda X (2022): " +
-                        (reply == null ? "timeout" : BitConverter.ToString(reply)));
-                    if (reply == null || reply.Length < 18 || reply[0] != 0x01 ||
-                        reply[1] != 0x80 || reply[3] != 0x50 || reply[4] != 0x49 ||
-                        reply[15] != 0x00)
-                        continue;
-
-                    int millivolts = reply[16] | (reply[17] << 8);
-                    int percent = BarracudaVoltageToPercent(millivolts);
-                    if (percent < 0)
-                        continue;
-
-                    return new BatteryReading
-                    {
-                        DeviceName = "Razer Barracuda X (2022)",
-                        Percent = percent,
-                        Charging = false,
-                        Wired = false,
-                        Mode = "2.4G"
-                    };
-                }
+                if (wireless != null)
+                    return wireless;
             }
             return null;
-        }
-
-        private static int BarracudaVoltageToPercent(int millivolts)
-        {
-            // The controller returns the cell voltage in millivolts. Razer's
-            // per-device calibration table is not exposed by this query, so
-            // use a conservative Li-ion discharge curve and match the 10%
-            // granularity used by the headset/mobile application.
-            int[] thresholds = { 3300, 3500, 3650, 3730, 3770, 3800, 3850, 3900, 3970, 4050, 4150 };
-            if (millivolts < 2800 || millivolts > 4400)
-                return -1;
-            int percent = 0;
-            for (int i = 1; i < thresholds.Length; i++)
-            {
-                if (millivolts < thresholds[i])
-                    break;
-                percent = i * 10;
-            }
-            return Math.Min(100, percent);
         }
 
         private static BatteryReading Query(List<HidEndpoint> endpoints, DeviceProfile profile,
@@ -1816,8 +1717,6 @@ namespace ArdorBatteryTray
 
         private static bool IsSupported(ushort vendorId, ushort productId)
         {
-            if (vendorId == 0x1532 && productId == 0x0552)
-                return true;
             foreach (DeviceProfile profile in Profiles)
             {
                 if (profile.VendorId == vendorId &&

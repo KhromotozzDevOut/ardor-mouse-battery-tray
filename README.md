@@ -2,8 +2,7 @@
 
 [Русская версия](README.ru.md) · [Download the latest release](https://github.com/KhromotozzDevOut/ardor-mouse-battery-tray/releases/latest)
 
-A lightweight battery indicator for compatible ARDOR GAMING wireless mice and the Razer
-Barracuda X (2022). It displays
+A lightweight battery indicator for compatible ARDOR GAMING wireless mice. It displays
 the current charge as a clear number in the Windows notification area and as an optional
 always-on-top overlay.
 
@@ -26,7 +25,6 @@ may run alongside this indicator, but it is not required.
 | Harpy | `3554:F511/F53C` | Nordic/CompX profile implemented; owner verification needed |
 | Impact PRO | `3554:F59A/F53C` | Nordic/CompX profile implemented; owner verification needed |
 | Phantom PRO V2 | `3554:F52E/F52D` | Nordic/CompX profile implemented; owner verification needed |
-| Razer Barracuda X (2022) | `1532:0552` | verified on physical hardware over the 2.4 GHz dongle |
 
 Several models share the same hardware ID, so Windows cannot reliably distinguish between
 them. The application identifies these devices as `ARDOR CompX` or `ARDOR Nordic/CompX`.
@@ -43,7 +41,6 @@ software. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete checklist.
 - four corner positions plus a lockable custom position;
 - four widget sizes and four opacity levels;
 - low-battery notifications at 20%, 10% and 5%;
-- monitors all connected supported devices and displays the one with the lowest charge;
 - optional per-user Windows startup;
 - English and Russian interface with automatic Windows-language detection;
 - no telemetry, ads, network access, Python or third-party runtime.
@@ -72,20 +69,16 @@ with games until move mode is enabled again.
 
 ## Installation and distribution
 
-- `ArdorBatteryTray-Setup-v1.3.0.exe` — standard per-user installer; no administrator rights;
-- `ArdorBatteryTray-v1.3.0-portable.zip` — portable version without installation;
+- `ArdorBatteryTray-Setup-v1.2.0.exe` — standard per-user installer; no administrator rights;
+- `ArdorBatteryTray-v1.2.0-portable.zip` — portable version without installation;
 - `SHA256SUMS.txt` — checksums for published files.
 
 Windows 10 and 11 are supported. The official ARDOR application does not need to be installed
 or running. An unsigned installer may trigger Microsoft SmartScreen; removing that warning
 from public releases requires a code-signing certificate.
 
-The battery is queried every 30 seconds. If a device sleeps, the last verified reading is
+The battery is queried every 30 seconds. If the mouse sleeps, the last verified reading is
 kept for five minutes.
-
-The Barracuda X receiver reports battery voltage rather than a ready percentage. The app
-uses a conservative Li-ion discharge curve and the headset's 10% display granularity, so
-its value is an estimate. Synapse and the Razer Audio mobile app are not required.
 
 ## Building
 
